@@ -1,0 +1,61 @@
+const form = document.getElementById('predict-form');
+const scoreValue = document.getElementById('score-value');
+const scoreRing = document.querySelector('.score-ring');
+const riskLabel = document.getElementById('risk-label');
+const summary = document.getElementById('summary');
+const routeAdvice = document.getElementById('route-advice');
+const eta = document.getElementById('eta');
+const confidence = document.getElementById('confidence');
+const runway = document.getElementById('runway');
+const action = document.getElementById('action');
+
+function setRing(score) {
+  const percent = Math.max(0, Math.min(score, 100));
+  scoreRing.style.setProperty('--progress', `${percent}%`);
+  scoreRing.style.background = `conic-gradient(#4cc9f0 ${percent}%, rgba(255, 255, 255, 0.08) ${percent}% 100%)`;
+  scoreRing.setAttribute('data-score', percent);
+}
+
+function updateRiskStyle(label) {
+  const normalized = label.toLowerCase();
+  const palette = {
+    'low risk': { className: 'good', color: '#3ddc97' },
+    'watch list': { className: 'warning', color: '#fbbf24' },
+    'moderate risk': { className: 'warning', color: '#fbbf24' },
+    'high risk': { className: 'critical', color: '#ff5f6d' }
+  };
+
+  const config = palette[normalized] || palette['watch list'];
+  riskLabel.className = `panel-tag ${config.className}`;
+  riskLabel.textContent = label;
+}
+
+async function runPrediction(event) {
+  event.preventDefault();
+
+  const formData = new FormData(form);
+  const payload = Object.fromEntries(formData.entries());
+
+  const response = await fetch('/api/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const result = await response.json();
+
+  scoreValue.textContent = result.score;
+  setRing(result.score);
+  updateRiskStyle(result.label);
+  summary.textContent = result.summary;
+  routeAdvice.textContent = result.routeAdvice;
+  eta.textContent = result.metrics.eta;
+  confidence.textContent = `${Math.round(result.metrics.confidence)}%`;
+  runway.textContent = result.metrics.runway;
+  action.textContent = result.recommendedAction;
+}
+
+form.addEventListener('submit', runPrediction);
+
+setRing(0);
+scoreValue.textContent = '0';

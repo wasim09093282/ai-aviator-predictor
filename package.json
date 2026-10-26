@@ -1,0 +1,13 @@
+{
+  "name": "ai-aviator-predictor",
+  "version": "1.0.0",
+  "description": "AI-powered aviation risk and route predictor dashboard",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
